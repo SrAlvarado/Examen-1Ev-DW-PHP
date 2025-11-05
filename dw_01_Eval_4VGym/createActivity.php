@@ -1,59 +1,38 @@
 <?php
-
 define('ROOT_PATH', __DIR__);
 
 require_once ROOT_PATH . '/persistence/DAO/ActivityDAO.php';
 require_once ROOT_PATH . '/model/Activity.php';
 require_once ROOT_PATH . '/utils/SessionHelper.php';
+require_once ROOT_PATH . '/utils/validation_functions.php';
+
 
 SessionHelper::setLastViewedPage(SessionHelper::CREATE_PAGE);
 
 $errors = [];
-$form_data = [
-    'type' => '',
-    'monitor' => '',
-    'place' => '',
-    'date' => ''
-];
-$allowed_types = ['Spinning', 'BodyPump', 'Pilates'];
+$form_data = ['type' => '', 'monitor' => '', 'place' => '', 'date' => ''];
+$tipos_permitidos = ['Spinning', 'BodyPump', 'Pilates'];
+
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $datos_recibidos = [
+            'type' => trim($_POST['type'] ?? ''),
+            'monitor' => trim($_POST['monitor'] ?? ''),
+            'place' => trim($_POST['place'] ?? ''),
+            'date' => trim($_POST['date'] ?? '')
+    ];
+    $form_data = $datos_recibidos;
 
-    $form_data['type'] = trim($_POST['type'] ?? '');
-    $form_data['monitor'] = trim($_POST['monitor'] ?? '');
-    $form_data['place'] = trim($_POST['place'] ?? '');
-    $form_data['date'] = trim($_POST['date'] ?? ''); // Fecha/hora en formato datetime-local
-    // 2. Validar datos
-    if (empty($form_data['type'])) $errors['type'] = 'El Tipo de actividad es obligatorio.';
-    if (empty($form_data['monitor'])) $errors['monitor'] = 'El nombre del Monitor es obligatorio.';
-    if (empty($form_data['place'])) $errors['place'] = 'El Lugar es obligatorio.';
-    if (empty($form_data['date'])) $errors['date'] = 'La Fecha y hora son obligatorias.';
+    $errores_encontrados = validar_datos_formulario_de_actividad($datos_recibidos);
 
-    if (!in_array($form_data['type'], $allowed_types)) {
-        $errors['type'] = 'Tipo de actividad no válido. Debe ser Spinning, BodyPump o Pilates.';
-    }
+    if (empty($errores_encontrados)) {
 
-    if (empty($errors['date'])) {
-        try {
-            $fecha_actividad = new DateTime($form_data['date']);
-            $fecha_actual = new DateTime('now');
-
-            if ($fecha_actividad <= $fecha_actual) {
-                $errors['date'] = 'La actividad debe ser programada para una fecha y hora futura.';
-            }
-        } catch (Exception $e) {
-            $errors['date'] = 'Formato de fecha y hora inválido.';
-        }
-    }
-
-
-    if (empty($errors)) {
         $activity_dto = new Activity(
-            null,
-            $form_data['type'],
-            $form_data['monitor'],
-            $form_data['place'],
-            $form_data['date']
+                null,
+                $datos_recibidos['type'],
+                $datos_recibidos['monitor'],
+                $datos_recibidos['place'],
+                $datos_recibidos['date']
         );
 
         $dao = new ActivityDAO();
@@ -63,9 +42,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             header("Location: listActivities.php?message=success_create");
             exit;
         } else {
-            $errors['general'] = 'Hubo un error al guardar la actividad en la base de datos.';
+            $errores_encontrados['general'] = 'Hubo un error al guardar la actividad en la base de datos.';
         }
     }
+    $errors = $errores_encontrados;
 }
 
 $pageTitle = 'Crear Nueva Actividad';
@@ -86,9 +66,9 @@ include ROOT_PATH . '/includes/header.php';
                 <div class="col-sm-10">
                     <select id="type" class="form-control" name="type" required>
                         <option value="">-- Seleccione Tipo --</option>
-                        <?php foreach ($allowed_types as $type): ?>
+                        <?php foreach ($tipos_permitidos as $type): ?>
                             <option value="<?= htmlspecialchars($type) ?>"
-                                <?= ($form_data['type'] === $type) ? 'selected' : '' ?>>
+                                    <?= ($form_data['type'] === $type) ? 'selected' : '' ?>>
                                 <?= htmlspecialchars($type) ?>
                             </option>
                         <?php endforeach; ?>
@@ -106,7 +86,6 @@ include ROOT_PATH . '/includes/header.php';
                            placeholder="Nombre del Monitor" required
                            value="<?= htmlspecialchars($form_data['monitor']) ?>">
                     <?php if (isset($errors['monitor'])): ?>
-                        <!-- htmlspecialchars() convierte caracteres especiales (como <, >, &, ") a entidades HTML.-->
                         <div class="text-danger small"><?= htmlspecialchars($errors['monitor']) ?></div>
                     <?php endif; ?>
                 </div>
@@ -144,5 +123,6 @@ include ROOT_PATH . '/includes/header.php';
     </div>
 
 <?php
+
 include ROOT_PATH . '/includes/footer.php';
 ?>

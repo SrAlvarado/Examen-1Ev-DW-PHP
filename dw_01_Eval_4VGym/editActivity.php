@@ -5,22 +5,16 @@ define('ROOT_PATH', __DIR__);
 require_once ROOT_PATH . '/persistence/DAO/ActivityDAO.php';
 require_once ROOT_PATH . '/model/Activity.php';
 require_once ROOT_PATH . '/utils/SessionHelper.php';
+require_once ROOT_PATH . '/utils/validation_functions.php';
 
-SessionHelper::setLastViewedPage(SessionHelper::LIST_PAGE); // Redirigimos siempre al listado tras la edición
-
+SessionHelper::setLastViewedPage(SessionHelper::LIST_PAGE); // Siempre redirige al listado tras la edición
 
 $dao = new ActivityDAO();
 $errors = [];
 $activity_id = null;
-$allowed_types = ['Spinning', 'BodyPump', 'Pilates'];
+$tipos_permitidos = ['Spinning', 'BodyPump', 'Pilates']; // Usado en la vista
 
-$form_data = [
-    'id' => null,
-    'type' => '',
-    'monitor' => '',
-    'place' => '',
-    'date' => ''
-];
+$form_data = ['id' => null, 'type' => '', 'monitor' => '', 'place' => '', 'date' => ''];
 
 if (isset($_GET['id']) && is_numeric($_GET['id'])) {
     $activity_id = (int)$_GET['id'];
@@ -29,92 +23,70 @@ if (isset($_GET['id']) && is_numeric($_GET['id'])) {
 }
 
 if ($activity_id === null || $activity_id <= 0) {
-    // Si no hay ID o es inválido, redirigimos al listado
     header("Location: listActivities.php?message=error_id_missing");
     exit;
 }
 
-
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
-    // Recoger datos del POST
-    $form_data['id'] = $activity_id;
-    $form_data['type'] = trim($_POST['type'] ?? '');
-    $form_data['monitor'] = trim($_POST['monitor'] ?? '');
-    $form_data['place'] = trim($_POST['place'] ?? '');
-    $form_data['date'] = trim($_POST['date'] ?? '');
+    $datos_recibidos = [
+            'type' => trim($_POST['type'] ?? ''),
+            'monitor' => trim($_POST['monitor'] ?? ''),
+            'place' => trim($_POST['place'] ?? ''),
+            'date' => trim($_POST['date'] ?? '')
+    ];
+    $form_data = array_merge($form_data, $datos_recibidos);
 
-    // Se usan las mismas validaciones que en createActivity.php
+    $errores_encontrados = validar_datos_formulario_de_actividad($datos_recibidos);
 
-    if (empty($form_data['type'])) $errors['type'] = 'El Tipo de actividad es obligatorio.';
-    if (empty($form_data['monitor'])) $errors['monitor'] = 'El nombre del Monitor es obligatorio.';
-    if (empty($form_data['place'])) $errors['place'] = 'El Lugar es obligatorio.';
-    if (empty($form_data['date'])) $errors['date'] = 'La Fecha y hora son obligatorias.';
-    if (!in_array($form_data['type'], $allowed_types)) {
-        $errors['type'] = 'Tipo de actividad no válido. Debe ser Spinning, BodyPump o Pilates.';
-    }
-
-    if (empty($errors['date'])) {
-        try {
-            $fecha_actividad = new DateTime($form_data['date']);
-            $fecha_actual = new DateTime('now');
-
-            if ($fecha_actividad <= $fecha_actual) {
-                $errors['date'] = 'La actividad debe ser programada para una fecha y hora futura.';
-            }
-        } catch (Exception $e) {
-            $errors['date'] = 'Formato de fecha y hora inválido.';
-        }
-    }
-
-    if (empty($errors)) {
+    if (empty($errores_encontrados)) {
 
         $activity_dto = new Activity(
-            $form_data['id'],
-            $form_data['type'],
-            $form_data['monitor'],
-            $form_data['place'],
-            $form_data['date']
+                $activity_id, // Usamos el ID recuperado para el UPDATE
+                $datos_recibidos['type'],
+                $datos_recibidos['monitor'],
+                $datos_recibidos['place'],
+                $datos_recibidos['date']
         );
 
-        // Llamada al DAO para la modificación
         if ($dao->update($activity_dto)) {
-            // Éxito: Redirigir al listado
             header("Location: listActivities.php?message=success_update");
             exit;
         } else {
-            $errors['general'] = 'Hubo un error al guardar los cambios en la base de datos (o no hubo cambios).';
+            $errores_encontrados['general'] = 'Hubo un error al guardar los cambios en la base de datos.';
         }
     }
+    $errors = $errores_encontrados;
 }
 
-// Buscamos la actividad por ID para precargar el formulario.
-$actividad = $dao->findById($activity_id);
 
-if ($actividad === null) {
+// D. Precarga de Datos (Para GET o POST con errores)
+$actividad_existente = $dao->findById($activity_id);
+
+// Si la actividad no existe, redirigir
+if ($actividad_existente === null) {
     header("Location: listActivities.php?message=error_not_found");
     exit;
 }
 
-// Si la petición es GET o si hubo errores en POST, precargamos los datos desde el objeto/BD
+// Si es GET o POST con errores, cargamos los datos para el formulario
 if ($_SERVER['REQUEST_METHOD'] === 'GET' || !empty($errors)) {
-    // Si es GET, o POST falló, usamos los datos de la BD o los datos del POST con errores
-    if ($_SERVER['REQUEST_METHOD'] === 'GET') {
-        $form_data['id'] = $actividad->id;
-        $form_data['type'] = $actividad->type;
-        $form_data['monitor'] = $actividad->monitor;
-        $form_data['place'] = $actividad->place;
 
-        // Formateamos la fecha para el input type="datetime-local" (YYYY-MM-DDTHH:MM)
+    // Si es GET, cargamos los datos de la BD (si no es POST con errores, los datos del POST tienen prioridad)
+    if ($_SERVER['REQUEST_METHOD'] === 'GET') {
+        $form_data['id'] = $actividad_existente->id;
+        $form_data['type'] = $actividad_existente->type;
+        $form_data['monitor'] = $actividad_existente->monitor;
+        $form_data['place'] = $actividad_existente->place;
+
+        // Formateamos la fecha a YYYY-MM-DDTHH:MM para el input datetime-local
         try {
-            $dateTime = new DateTime($actividad->date);
+            $dateTime = new DateTime($actividad_existente->date);
             $form_data['date'] = $dateTime->format('Y-m-d\TH:i');
         } catch (Exception $e) {
-            // Si falla la fecha, usamos la cadena original
-            $form_data['date'] = $actividad->date;
+            $form_data['date'] = $actividad_existente->date;
         }
     }
-
 }
 
 $pageTitle = 'Editar Actividad ' . $activity_id;
@@ -137,9 +109,9 @@ include ROOT_PATH . '/includes/header.php';
                 <div class="col-sm-10">
                     <select id="type" class="form-control" name="type" required>
                         <option value="">-- Seleccione Tipo --</option>
-                        <?php foreach ($allowed_types as $type): ?>
+                        <?php foreach ($tipos_permitidos as $type): ?>
                             <option value="<?= htmlspecialchars($type) ?>"
-                                <?= ($form_data['type'] === $type) ? 'selected' : '' ?>>
+                                    <?= ($form_data['type'] === $type) ? 'selected' : '' ?>>
                                 <?= htmlspecialchars($type) ?>
                             </option>
                         <?php endforeach; ?>
@@ -194,5 +166,6 @@ include ROOT_PATH . '/includes/header.php';
     </div>
 
 <?php
+
 include ROOT_PATH . '/includes/footer.php';
 ?>
