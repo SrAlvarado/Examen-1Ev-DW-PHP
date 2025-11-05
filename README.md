@@ -1,61 +1,125 @@
 [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/SrAlvarado/Examen-1Ev-DW-PHP)
-# 🏋️‍♂️ 4VGym: Gestión de Actividades (Examen 1ª Evaluación DW)
+# 4VGym - Sistema de Gestión de Actividades  
+  
+Aplicación web para la gestión de actividades de gimnasio desarrollada en PHP con arquitectura MVC.  
+  
+## Características  
+  
+- **Gestión de Actividades**: Crear, editar, listar y eliminar actividades de gimnasio  
+- **Tipos de Actividades**: Spinning, BodyPump y Pilates  
+- **Validación de Datos**: Validación de formularios con mensajes de error específicos  
+- **Filtrado por Fecha**: Búsqueda de actividades por fecha  
+- **Interfaz Responsive**: Diseño con Bootstrap 5  
+  
+## Requisitos del Sistema  
+  
+- PHP 7.4 o superior  
+- MySQL/MariaDB  
+- Servidor web (Apache/Nginx)  
+- Extensión PDO de PHP  
+  
+## Instalación  
+  
+1. **Clonar el repositorio**  
+   ```bash  
+   git clone https://github.com/SrAlvarado/Examen-1Ev-DW-PHP.git  
+   cd Examen-1Ev-DW-PHP/dw_01_Eval_4VGym
+Configurar la base de datos
 
-Este proyecto implementa una aplicación web básica para la gestión de actividades de un gimnasio (**4VGym**), cumpliendo con los requisitos de arquitectura de capas, patrón DAO y seguridad (PDO) establecidos para el examen práctico de **Desarrollo Web en Entorno Servidor (2DAM)**.
+Crear una base de datos llamada 4vgym
+Importar el esquema SQL (si está disponible)
+Configurar credenciales en persistence/conf/PersistentManager.php
+Configuración de la base de datos
 
-**Autor:** Markel Alvarado
-**Materia:** DWES (Desarrollo Web en Entorno Servidor)
-**Arquitectura:** PHP Nativo con Patrón DAO (Data Access Object)
+DB_HOST = 'localhost'  
+DB_NAME = '4vgym'  
+DB_USER = 'root'  
+DB_PASS = ''
+Iniciar el servidor
+
+php -S localhost:8000
+Acceder a la aplicación
+
+Abrir navegador en http://localhost:8000/listActivities.php
+Estructura del Proyecto
+dw_01_Eval_4VGym/  
+├── app/  
+│   ├── header.php          # Cabecera común  
+│   └── footer.php          # Pie de página común  
+├── assets/  
+│   └── img/                # Imágenes de actividades  
+├── model/  
+│   └── Activity.php        # Modelo de datos  
+├── persistence/  
+│   ├── conf/  
+│   │   └── PersistentManager.php  # Gestión de conexión PDO  
+│   └── DAO/  
+│       └── ActivityDAO.php # Capa de acceso a datos  
+├── utils/  
+│   ├── SessionHelper.php   # Gestión de sesiones  
+│   └── validation_functions.php  # Validaciones  
+├── createActivity.php      # Crear actividad  
+├── editActivity.php        # Editar actividad  
+└── listActivities.php      # Listar actividades  
+# Resumen Funcional y Arquitectónico del Proyecto 4VGym
+
+## 1. Funcionalidades Principales
+
+### Crear Actividad (`createActivity.php`)
+* Formulario con **validación de campos obligatorios**.
+* **Validación de fecha futura** (respecto a la hora actual en `Europe/Madrid`).
+* Tipos permitidos: `Spinning`, `BodyPump`, `Pilates`.
+
+### Editar Actividad (`editActivity.php`)
+* **Carga de datos existentes** mediante ID (`ActivityDAO::findById()`).
+* **Validación de ID de actividad** para evitar accesos no autorizados/errores.
+* **Preservación de datos** en el formulario en caso de error de validación.
+
+### Listar Actividades (`listActivities.php`)
+* Vista en **tarjetas** con *grid* responsivo de **Bootstrap 5**.
+* **Filtro por fecha** (`YYYY-MM-DD`).
+* **Confirmación JavaScript** para la eliminación de registros.
+* Implementación del patrón **Post-Redirect-Get (PRG)**.
 
 ---
 
-## 🚀 1. Funcionalidades Implementadas
+## 2. Esquema de Validaciones y Seguridad
 
-El proyecto cubre todos los puntos funcionales requeridos por el examen, implementando las operaciones CRUD y la lógica de negocio:
+El sistema implementa estrictas validaciones a nivel de servidor:
 
-* **Listado (Punto 3):** Muestra todas las actividades programadas.
-* **Filtro por Fecha (Punto 7):** Permite filtrar las actividades por un día específico (sin la hora).
-* **Creación (Punto 4):** Formulario para añadir nuevas actividades con validaciones estrictas (campos obligatorios, tipos válidos, fecha futura).
-* **Edición (Punto 6):** Formulario para modificar una actividad existente, reutilizando la lógica de validación de la creación.
-* **Borrado (Punto 5):** Permite eliminar una actividad desde el listado, validando la existencia previa del ID.
-* **Redirección/Sesión (Punto 2):** El `index.php` redirige al usuario a la última página visitada (`listActivities.php` o `createActivity.php`) usando el `SessionHelper`.
+### Validaciones de Negocio y Estructura
+* **Campos obligatorios:** Tipo, Monitor, Lugar, Fecha.
+* **Tipo de actividad:** Solo valores permitidos (`Spinning`, `BodyPump`, `Pilates`).
+* **Fecha:** Debe ser **futura** respecto a la hora actual en `Europe/Madrid` (Lógica de negocio).
+* **Formato de fecha:** Validación interna mediante la clase `DateTime`.
+
+### Seguridad (Anti-Inyección y XSS)
+| Mecanismo | Función / Técnica | Propósito |
+| :--- | :--- | :--- |
+| **Prevención SQLi** | **PDO** con **prepared statements** (`?` marcadores) | Separa datos de comandos SQL. |
+| **Sanitización de Entrada** | `trim()` | Limpieza de espacios en blanco al recibir `$_POST`. |
+| **Escape de Salida** | `htmlspecialchars()` | Previene **XSS** al escapar datos antes de renderizar HTML. |
+| **Control de Dominio** | Validación contra *whitelist* | Asegura que el `type` sea un valor conocido. |
+
+### Manejo de Errores y UX
+* **Errores de validación:** Se muestran de forma **inline** a nivel de campo.
+* **Mensajes generales:** Para fallos de base de datos (`ActivityDAO` devuelve `false`).
+* **Preservación de datos:** Los valores del formulario se mantienen (`$form_data`) en caso de error.
+* **Redirecciones:** Uso de *query parameters* para comunicar el estado de éxito/error después del PRG.
 
 ---
 
-## 🏗️ 2. Arquitectura de Proyecto (Capas)
+## 3. Tecnologías y Arquitectura
 
-El proyecto sigue una arquitectura de tres capas bien definidas, utilizando el patrón DAO para la capa de persistencia:
+* **Backend:** PHP 7.4+
+* **Base de datos:** MySQL con capa de acceso a datos **PDO**.
+* **Frontend:** HTML5, Bootstrap 5 (CDN).
+* **Arquitectura:** **MVC** con enfoque en el **patrón DAO** (Data Access Object).
 
-dw_01_Eval_4VGym/ ├── app/ <-- Vistas parciales (Header/Footer) ├── assets/ <-- Archivos estáticos (CSS, JS, Imágenes de tipos de actividad) ├── model/ │ └── Activity.php <-- [DTO/Entidad] Objeto de transferencia de datos. ├── persistence/ <-- CAPA DE PERSISTENCIA │ ├── conf/ │ │ └── PersistentManager.php <-- Conexión PDO (Versión mínima requerida). │ ├── DAO/ │ │ └── ActivityDAO.php <-- [DAO] Contiene toda la lógica SQL (CRUD + Filtro). │ └── scripts/ │ └── bbdd_actividades.sql <-- Script de creación de la BBDD. ├── utils/ │ ├── SessionHelper.php <-- Utilidad para la gestión de la sesión y redirección (Punto 2). │ └── validation_functions.php <-- Funciones de validación de formulario (Clean Code, Punto 4/6). ├── createActivity.php <-- [Front-Controller] Maneja POST/GET y validación de creación. ├── editActivity.php <-- [Front-Controller] Maneja GET/POST y validación de edición. ├── index.php <-- [Front-Controller] Punto de entrada y gestión de redirección. └── listActivities.php <-- [Front-Controller] Listado, Filtro y Lógica de Borrado.
+## 1. Autor
+SrAlvarado
 
 
----
-
-## 🛠️ 3. Configuración e Instalación
-
-Para levantar y probar la aplicación, sigue los siguientes pasos:
-
-### 3.1. Base de Datos (BBDD)
-
-1.  Abre tu cliente de MySQL/MariaDB (ej. phpMyAdmin, HeidiSQL, o la consola).
-2.  Ejecuta el script SQL ubicado en `persistence/scripts/bbdd_actividades.sql` para crear la base de datos `4vgym` y la tabla `activities` con datos iniciales.
-
-### 3.2. Configuración de Conexión
-
-1.  Abre el archivo `persistence/conf/PersistentManager.php`.
-2.  Asegúrate de que las constantes `DB_USER` y `DB_PASS` coincidan con tus credenciales locales de MySQL (por defecto, `root` y contraseña vacía).
-
-```php
-private const DB_HOST = 'localhost';
-private const DB_NAME = '4vgym';
-private const DB_USER = 'root'; // CAMBIAR si es necesario
-private const DB_PASS = '';     // CAMBIAR si es necesario
-3.3. Ejecución
-Copia la carpeta principal del proyecto (dw_01_Eval_4VGym) en tu directorio de servidor web (ej. C:\xampp\htdocs\ o var/www/html).
-
-Accede a la aplicación a través de tu navegador: http://localhost/[ruta_a_tu_proyecto]/dw_01_Eval_4VGym/index.php
-
-🛡️ 4. Principios de Código Clave
-Seguridad: Uso estricto de Sentencias Preparadas (PDO) en todo el ActivityDAO para prevenir ataques de Inyección SQL.
-
-Clean Code: Extracción de la lógica de validación a funciones dedicadas (validation_functions.php) para evitar la duplicación de código en los Front-Controllers de creación y edición.
+[0-cite-1](#0-cite-1) [0-cite-2](#0-cite-2) [0-cite-3](#0-cite-3)   
+  
+# Notes  [3](#header-3)
