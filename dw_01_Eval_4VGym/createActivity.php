@@ -49,7 +49,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 $pageTitle = 'Crear Nueva Actividad';
-include ROOT_PATH . '/includes/header.php';
+include ROOT_PATH . '/app/header.php';
 ?>
 
     <div class="container mt-5">
@@ -124,5 +124,5 @@ include ROOT_PATH . '/includes/header.php';
 
 <?php
 
-include ROOT_PATH . '/includes/footer.php';
+include ROOT_PATH . '/app/footer.php';
 ?>

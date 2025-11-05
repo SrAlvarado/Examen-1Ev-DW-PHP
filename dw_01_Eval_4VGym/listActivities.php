@@ -8,7 +8,6 @@ $dao = new ActivityDAO();
 $mensaje_resultado = '';
 $filtro_fecha = null;
 
-// A. Lógica de Borrado
 if (isset($_GET['action']) && $_GET['action'] === 'delete' && isset($_GET['id']) && is_numeric($_GET['id'])) {
 
     $id_a_borrar = (int)$_GET['id'];
@@ -51,7 +50,7 @@ $actividades = $dao->findAll($filtro_fecha);
 SessionHelper::setLastViewedPage(SessionHelper::LIST_PAGE);
 
 $pageTitle = 'Listado de Actividades';
-include ROOT_PATH . '/includes/header.php';
+include ROOT_PATH . '/app/header.php';
 ?>
 
 <div class="container-fluid">
@@ -139,5 +138,5 @@ include ROOT_PATH . '/includes/header.php';
 </div>
 
 <?php
-include ROOT_PATH . '/includes/footer.php';
+include ROOT_PATH . '/app/footer.php';
 ?>

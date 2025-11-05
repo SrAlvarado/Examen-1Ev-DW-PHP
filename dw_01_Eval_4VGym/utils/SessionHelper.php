@@ -1,9 +1,6 @@
 <?php
-
-namespace utils;
 class SessionHelper
 {
-
     private const LAST_PAGE_KEY = 'last_viewed_page';
 
     private const DEFAULT_PAGE = 'listActivities.php';
