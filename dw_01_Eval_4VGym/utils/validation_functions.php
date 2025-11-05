@@ -2,7 +2,7 @@
 
 function validar_datos_formulario_de_actividad(array $datos_actividad): array {
     $errores = [];
-    $tipos_permitidos = ['Spinning', 'BodyPump', 'Pilates']; // Tipos válidos (Punto 4.2)
+    $tipos_permitidos = ['Spinning', 'BodyPump', 'Pilates'];
 
     if (empty($datos_actividad['type'])) {
         $errores['type'] = 'El Tipo de actividad es obligatorio.';
@@ -26,7 +26,6 @@ function validar_datos_formulario_de_actividad(array $datos_actividad): array {
         $errores['type'] = 'Tipo de actividad no válido. Debe ser Spinning, BodyPump o Pilates.';
     }
 
-    // Se realiza solo si la fecha no está vacía (aunque la obligatoriedad ya lo cubre)
     try {
         // Usamos la hora actual de Pamplona, España (CET) como referencia
         $zona_horaria = new DateTimeZone('Europe/Madrid');

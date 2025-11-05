@@ -12,7 +12,7 @@ SessionHelper::setLastViewedPage(SessionHelper::LIST_PAGE); // Siempre redirige 
 $dao = new ActivityDAO();
 $errors = [];
 $activity_id = null;
-$tipos_permitidos = ['Spinning', 'BodyPump', 'Pilates']; // Usado en la vista
+$tipos_permitidos = ['Spinning', 'BodyPump', 'Pilates'];
 
 $form_data = ['id' => null, 'type' => '', 'monitor' => '', 'place' => '', 'date' => ''];
 
@@ -42,7 +42,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (empty($errores_encontrados)) {
 
         $activity_dto = new Activity(
-                $activity_id, // Usamos el ID recuperado para el UPDATE
+                $activity_id,
                 $datos_recibidos['type'],
                 $datos_recibidos['monitor'],
                 $datos_recibidos['place'],

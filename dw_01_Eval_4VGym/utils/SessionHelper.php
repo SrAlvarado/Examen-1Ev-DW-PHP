@@ -6,6 +6,7 @@ class SessionHelper
     private const DEFAULT_PAGE = 'listActivities.php';
 
     public const LIST_PAGE = 'listActivities.php';
+
     public const CREATE_PAGE = 'createActivity.php';
 
     public static function startSession(): void
@@ -27,6 +28,7 @@ class SessionHelper
     {
         self::startSession();
 
+       // Si la sesión no tiene una página guardada o está vacía, redirige a la página por defecto
         if (isset($_SESSION[self::LAST_PAGE_KEY]) && !empty($_SESSION[self::LAST_PAGE_KEY])) {
             return $_SESSION[self::LAST_PAGE_KEY];
         } else {

@@ -21,7 +21,8 @@ class PersistentManager {
 
         try {
             $conexion = new PDO($dsn, self::DB_USER, self::DB_PASS);
-
+            // PDO::ATTR_ERRMODE: Es una constante de PDO que define cómo debe informar PDO sobre los errores SQL
+            // PDO::ERRMODE_WARNING: Es el valor que le asignamos. PDO emitirá un warning de PHP y la ejecución continuará
             $conexion->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_WARNING);
 
             return $conexion;

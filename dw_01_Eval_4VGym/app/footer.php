@@ -1,6 +1,6 @@
 <?php
 ?>
-</div> <footer class="container-fluid mb-0" role="footer">
+</div> <footer class="container-fluid mb-0">
     <div class="row">
         <div class="col-lg-12">
             <p>Copyright &copy; M. G. | 4VGym</p>

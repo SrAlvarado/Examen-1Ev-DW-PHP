@@ -12,10 +12,10 @@ if (isset($_GET['action']) && $_GET['action'] === 'delete' && isset($_GET['id'])
 
     $id_a_borrar = (int)$_GET['id'];
 
-    // 1. Verificar que el ID de la actividad existe en la BBDD
+    // Verificar que el ID de la actividad existe en la BBDD
     if ($dao->findById($id_a_borrar) !== null) {
 
-        // 2. Si existe, se elimina la actividad en BBDD
+        // Si existe, se elimina la actividad en BBDD
         if ($dao->delete($id_a_borrar)) {
             $mensaje_resultado = '<div class="alert alert-success">Actividad eliminada correctamente.</div>';
         } else {
@@ -24,7 +24,7 @@ if (isset($_GET['action']) && $_GET['action'] === 'delete' && isset($_GET['id'])
         }
 
     } else {
-        // 1.a. Si el ID no existe en BBDD, no damos nada de información
+        // Si el ID no existe en BBDD, no damos nada de información
         $mensaje_resultado = '<div class="alert alert-warning">Operación no válida.</div>';
     }
 

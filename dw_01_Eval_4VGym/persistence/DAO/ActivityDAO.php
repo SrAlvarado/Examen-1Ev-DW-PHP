@@ -63,6 +63,7 @@ class ActivityDAO {
         $sentencia = $this->conexion->prepare($sql);
         $sentencia->execute([$id]);
 
+        //la línea toma la siguiente fila de resultados de la base de datos y la convierte en un array de PHP
         $row = $sentencia->fetch(PDO::FETCH_ASSOC);
 
         if (!$row) {

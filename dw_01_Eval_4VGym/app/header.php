@@ -1,5 +1,6 @@
 <?php
 
+// Lo que hace el defined y die es evitar el acceso directo al archivo header.php desde el navegador
 if (!defined('ROOT_PATH')) {
 
     die('Acceso no permitido.');
@@ -10,7 +11,6 @@ $createPage = 'createActivity.php';
 $logoSrc = 'assets/img/small-logo_1.jpg';
 $uploadIcon = '<span class="octicon octicon-cloud-upload"></span>';
 
-// Título por defecto de la página
 $pageTitle = $pageTitle ?? "4VGym";
 ?>
 <!DOCTYPE html>
