@@ -1,4 +1,3 @@
-[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/SrAlvarado/Examen-1Ev-DW-PHP)
 # 4VGym - Sistema de Gestión de Actividades  
   
 Aplicación web para la gestión de actividades de gimnasio desarrollada en PHP con arquitectura MVC.  
@@ -119,7 +118,7 @@ El sistema implementa estrictas validaciones a nivel de servidor:
 ## 1. Autor
 SrAlvarado
 
-
-[0-cite-1](#0-cite-1) [0-cite-2](#0-cite-2) [0-cite-3](#0-cite-3)   
   
-# Notes  [3](#header-3)
+# Para Mas Información sobre el Proyecto:
+[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/SrAlvarado/Examen-1Ev-DW-PHP)
+
